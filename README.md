@@ -1,172 +1,107 @@
-# Multi-Agent Retrieval-Augmented Generation (RAG)
-
-This project demonstrates a Multi-Agent Retrieval-Augmented Generation (RAG) system using LangChain agents. The system features role-based agents that collaboratively solve user queries through specialized tools such as web search, code execution, and mathematical computation.
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Setup Instructions](#setup-instructions)
-- [Usage](#usage)
-- [Example Use Cases](#example-use-cases)
-- [Project Structure](#project-structure)
-- [Future Work](#future-work)
-- [Contributing](#contributing)
-- [License](#license)
-- [Author](#author)
-
----
+# Multi-Agent Retrieval-Augmented Generation (RAG) Model
 
 ## Overview
 
-Retrieval-Augmented Generation (RAG) enhances language models by combining them with external data sources. This project extends the standard RAG pipeline by introducing multiple intelligent agents that interact via a shared communication mechanism to solve complex tasks.
-
-Each agent is assigned a specific role and toolset, allowing them to behave differently and collaborate to reach optimal answers.
-
----
+This project showcases a **Multi-Agent RAG system** that intelligently routes user queries to the best source—either a specialized vectorstore or Wikipedia—leveraging state-of-the-art Large Language Models (LLMs). Designed with modularity and scalability in mind, the system integrates advanced tools like LangChain, LangGraph, ChromaDB, Cassandra, and Groq's Gemma2-9b-It model, enabling autonomous query routing, semantic retrieval, and real-time web knowledge augmentation.
 
 ## Features
 
-- Multi-agent system with distinct roles and behaviors
-- Tool integration (search, code execution, LLM reasoning, mathematical operations)
-- GroupChat and AgentExecutor powered by LangChain
-- Environment variable support for OpenAI key management
-- Extensible for custom tools and personas
-
----
+- **Intelligent Query Routing:** Uses an LLM-based router to dynamically decide between domain-specific vectorstore search and Wikipedia web search.
+- **Multi-Agent Setup:** Distinct agents handle semantic search over indexed documents and live external data fetching.
+- **Vectorstore Indexing:** Employs Cassandra and Chroma with HuggingFace embeddings for efficient semantic retrieval.
+- **External Knowledge Integration:** Real-time access to Wikipedia and Arxiv for comprehensive information coverage.
+- **Graph-Based Workflow:** Utilizes LangGraph for explicit, extendable workflows with conditional routing and state management.
+- **Streamlined and Modular:** Easily extensible architecture for adding new data sources, memory modules, or reasoning agents.
 
 ## Architecture
 
-### Agents
+```mermaid
+graph TD
+START -->|Route Query| Router
+Router -->|Domain Query| VectorstoreSearch
+Router -->|General Query| WikipediaSearch
+VectorstoreSearch --> END
+WikipediaSearch --> END
+```
 
-- **User Proxy Agent**: Simulates user input and initiates the group chat
-- **Research Agent**: Performs web search via DuckDuckGo
-- **Code Agent**: Executes Python code and returns results
-- **Math Agent**: Solves numerical problems using symbolic computation
-- **LLM Assistant Agent**: Handles general natural language reasoning
+- **Router:** Classifies input questions and routes appropriately.
+- **VectorstoreSearch:** Retrieves answers from specialized domain knowledge.
+- **WikipediaSearch:** Queries Wikipedia for general knowledge questions.
 
-### Core Components
-
-- **LangChain Agent**: Base for each specialized role
-- **Toolset**: Configurable tools like `PythonREPLTool`, `DuckDuckGoSearchRun`
-- **GroupChat**: Facilitates conversation between multiple agents
-- **AgentExecutor**: Coordinates execution of agent interactions
-
----
-
-## Setup Instructions
-
-### 1. Clone the Repository
+## Installation
 
 ```bash
-git clone https://github.com/your-username/Multi-Agent-RAG.git
-cd Multi-Agent-RAG
+pip install langchain langgraph langchain_community cassio chromadb langchain_huggingface tiktoken langchain-groq langchainhub arxiv wikipedia
 ```
 
-### 2. Create a Virtual Environment (Recommended)
+> *Note:* For detailed environment setup, refer to the `Multi_Agent_RAG.ipynb` notebook.
+
+## Setup & Usage
+
+1. **Clone this repository and open `Multi_Agent_RAG.ipynb`.**
+
+2. **Install required packages:**
 
 ```bash
-python -m venv venv
-source venv/bin/activate    # For Linux/macOS
-venv\Scripts\activate.bat   # For Windows
+pip install langchain langgraph langchain_community cassio chromadb langchain_huggingface tiktoken langchain-groq langchainhub arxiv wikipedia
 ```
 
-### 3. Install Required Packages
+3. **Configure AstraDB credentials:**
 
-If `requirements.txt` is available:
+Set environment variables `ASTRA_DB_APPLICATION_TOKEN` and `ASTRA_DB_ID` with your credentials for Cassandra vectorstore access.
 
-```bash
-pip install -r requirements.txt
+4. **Load and index domain documents:**
+
+Use the notebook to load topic-specific web pages (agents, prompt engineering, adversarial attacks), split documents, and embed with HuggingFace models.
+
+5. **Run the multi-agent workflow:**
+
+The Groq LLM powers query routing; LangGraph orchestrates graph nodes.
+
+### Example code to query the system
+
+```python
+inputs = {"question": "What is an agent?"}
+for output in app.stream(inputs):
+    print(output)
 ```
 
-Otherwise, install dependencies manually:
+- Domain-specific questions return answers from the vectorstore.
+- General questions are routed to Wikipedia search.
 
-```bash
-pip install langchain openai duckduckgo-search
-```
+## Example Queries and Routing
 
-Optional for Jupyter use:
+| Query                                  | Routed To      | Expected Output                        |
+|---------------------------------------|----------------|----------------------------------------|
+| "What are the types of agent memory?" | Vectorstore    | Domain-specific detailed answer        |
+| "Avengers"                            | Wikipedia      | General info fetched from Wikipedia    |
+| "Who is Shahrukh Khan?"               | Wikipedia      | Real-time web search answer            |
 
-```bash
-pip install notebook ipykernel
-```
+## Technology Stack
 
-### 4. Set Environment Variables
+- **LangChain & LangGraph:** Agent orchestration and graph workflow.
+- **Groq LLM (Gemma2-9b-It):** Powerful LLM for decision making.
+- **Cassandra & ChromaDB:** Scalable vector database storage.
+- **HuggingFace Embeddings:** Semantic text encoding.
+- **Wikipedia & Arxiv APIs:** Real-time external knowledge sources.
 
-Create a `.env` file in the project root:
+## Applications
 
-```env
-OPENAI_API_KEY=your-openai-api-key
-```
+- AI-powered research assistants with intelligent source selection.
+- Enterprise autonomous question answering on mixed data.
+- Hybrid semantic and live web search engines with transparent workflows.
 
-Alternatively, set it in your terminal session:
+## Resume Highlights
 
-```bash
-export OPENAI_API_KEY=your-openai-api-key    # Linux/macOS
-set OPENAI_API_KEY=your-openai-api-key       # Windows
-```
-
----
-
-## Usage
-
-Open the notebook in Jupyter or VSCode and run the cells step-by-step.
-
-```bash
-jupyter notebook Multi_Agent_RAG.ipynb
-```
-
-You can modify agent behavior, tools, and input prompts directly in the notebook.
-
----
-
-## Example Use Cases
-
-- General knowledge and coding questions
-- Math-related queries with real-time calculation
-- Task decomposition between researcher and developer personas
-- Retrieval-based Q&A with source citations
-- Natural language reasoning and discussion with multiple perspectives
-
----
-
-## Project Structure
-
-```bash
-.
-├── Multi_Agent_RAG.ipynb     # Main demonstration notebook
-├── requirements.txt          # Optional dependencies file
-├── .env                      # Contains API keys (not included in version control)
-└── README.md                 # Project documentation
-```
-
----
-
-## Future Work
-
-- Integration with vector databases (Chroma, FAISS)
-- PDF and document ingestion using LangChain loaders
-- Streamlit or Gradio UI interface
-- Advanced memory integration for agent persistence
-- Custom evaluation metrics for multi-agent effectiveness
-
----
-
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change or add.
-
----
+- Architected a dynamic, multi-agent RAG system combining semantic and web search.
+- Integrated vector databases and LLMs extending Groq, LangChain, LangGraph.
+- Demonstrated advanced workflows with routing, indexing, and external tool invocation.
+- Deployed scalable, modular, and extensible multi-agent information retrieval solutions.
 
 ## License
 
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
+Open source for educational and research demonstration purposes.
 
 ---
 
-## Author
-
-**Pochimireddy Ajith Reddy**  
-Currently working on multi-agent AI systems, language model integrations, and physics-informed machine learning.  
-Feel free to connect for collaboration or discussion.
+For more details or collaboration, please contact via your professional profile.
